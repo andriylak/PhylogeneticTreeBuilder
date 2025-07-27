@@ -4,7 +4,10 @@
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            var a = new UPGMA();
+            string csv_file = "C:\\Users\\LEGION\\Desktop\\Andriy\\CharlesUniversity\\Programming2\\PhylogeneticTreeBuilder\\ConsoleApp1\\test.txt";
+            DistanceMatrix matrix = new DistanceMatrix(csv_file);
+            var b = a.BuildTree(matrix);
         }
     }
 }
