@@ -15,11 +15,13 @@
 
                 // Compute new height
                 double distance = matrix.GetDistance(i, j);
-                double leftHeight = distance / 2.0 - clusterA.Node.GetMaxHeight();
-                double rightHeight = distance / 2.0 - clusterB.Node.GetMaxHeight();
+                double heightA = distance / 2.0 - clusterA.Node.GetMaxHeight;
+                double heightB = distance / 2.0 - clusterB.Node.GetMaxHeight;
 
                 // Create new TreeNode
-                var newNode = new TreeNode(clusterA.Node, clusterB.Node, leftHeight, rightHeight);
+                List<TreeNode> children = new List<TreeNode>() { clusterA.Node, clusterB.Node };
+                List<double> heights = new List<double>() { heightA, heightB };
+                TreeNode newNode = new TreeNode(children, heights);
 
                 // Create merged cluster
                 var merged = Cluster.Merge(clusterA, clusterB, next_id, newNode);
@@ -32,6 +34,14 @@
             }
 
             return matrix.Clusters.Values.First().Node;
+        }
+    }
+
+    internal class NeighborJoining
+    {
+        public TreeNode BuildTree(DistanceMatrix matrix)
+        {
+
         }
     }
 }

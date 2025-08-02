@@ -3,37 +3,54 @@
     public class TreeNode
     {
         public string? Name { get; set; }
-        public TreeNode? LeftChild { get; set; }
-        public TreeNode? RightChild { get; set; }
-        public double? HeightRight { get; set; }
-        public double? HeightLeft { get; set; }
+
+        public List<TreeNode> Children { get; set; }
+        public List<double> Heights { get; set; }
+        public double MaxHeight { get; private set; }
 
         // Constructor for leaf nodes (single specimen)
         public TreeNode(string name)
         {
             Name = name;
-            HeightRight = 0;
-            HeightLeft = 0;
-            LeftChild = null;
-            RightChild = null;
+            Children = new List<TreeNode>();
+            Heights = new List<double>();
+            MaxHeight = 0;
         }
 
         // Constructor for internal (merged) nodes
-        public TreeNode(TreeNode leftChild, TreeNode rightChild, double heightLeft, double heightRight)
+        public TreeNode(List<TreeNode> children, List<double> heights)
         {
-            LeftChild = leftChild;
-            RightChild = rightChild;
-            HeightRight = heightRight;
-            HeightLeft = heightLeft;
             Name = "o";
+            Children = new List<TreeNode>();
+            Heights = new List<double>();
+            for (int i = 0; i < children.Count; i++)
+            {
+                AddChild(children[i], heights[i]);
+            }
+            MaxHeight = CalculateMaxHeight();
+
         }
 
-        public double GetMaxHeight()
+        private void AddChild(TreeNode child, double height)
         {
-            return Math.Max((double)(LeftChild != null ? LeftChild.GetMaxHeight() + HeightLeft : 0),
-                            (double)(RightChild != null ? RightChild.GetMaxHeight() + HeightRight : 0));
+            Children.Add(child);
+            Heights.Add(height);
         }
-        public bool IsLeaf => LeftChild == null && RightChild == null;
+        private double CalculateMaxHeight()
+        {
+            double max = double.MinValue;
+            for (int i = 0; i < Children.Count; i++)
+            {
+                if (Children[i].MaxHeight + Heights[i] > max)
+                {
+                    max = Children[i].MaxHeight + Heights[i];
+                }
+            }
+            return max;
+        }
+        public bool IsLeaf => Children.Count == 0;
+
+        public double GetMaxHeight => MaxHeight;
 
     }
 }

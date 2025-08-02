@@ -7,6 +7,7 @@ public class DistanceMatrix
     public Dictionary<int, Cluster> Clusters { get; private set; }
     private PriorityQueue<(int, int), double> Queue;
     public int Size() => Clusters.Count();
+    public double[,] QMatrix { get; private set; }
     public DistanceMatrix(string csvPath)
     {
         List<string> labels = new List<string>();
@@ -119,6 +120,22 @@ public class DistanceMatrix
             var newKey = k < newId ? (k, newId) : (newId, k);
             Distances[newKey] = newDistance;
             Queue.Enqueue(newKey, newDistance);
+        }
+    }
+
+    public void CalculateQMatrix()
+    {
+        int sizeOfMatrix = Size();
+        double[,] QMatrix = new double[sizeOfMatrix, sizeOfMatrix];
+        for (int i = 0; i < sizeOfMatrix; i++)
+        {
+            for (int j = 0; j < sizeOfMatrix; j++)
+            {
+                if (i < j)
+                {
+
+                }
+            }
         }
     }
 }
