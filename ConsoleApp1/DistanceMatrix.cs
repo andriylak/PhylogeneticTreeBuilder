@@ -6,8 +6,8 @@ public class DistanceMatrix
     public Dictionary<(int, int), double> Distances { get; private set; }
     public Dictionary<int, Cluster> Clusters { get; private set; }
     private PriorityQueue<(int, int), double> Queue;
-    public int Size() => Clusters.Count();
-    public double[,] QMatrix { get; private set; }
+    public int Size => Clusters.Count();
+    public Dictionary<(int, int), double> QMatrix { get; private set; }
     public DistanceMatrix(string csvPath)
     {
         List<string> labels = new List<string>();
@@ -92,50 +92,99 @@ public class DistanceMatrix
         Clusters[id] = cluster;
     }
 
-    public void UpdateDistances(int newId, Cluster a, Cluster b)
+    private void RemoveKeysFromDictionary(int i, int j)
     {
-        var copy = new Dictionary<(int, int), double>(Distances);
-
         var toRemove = Distances.Keys
-            .Where(k => k.Item1 == a.Id || k.Item2 == a.Id || k.Item1 == b.Id || k.Item2 == b.Id)
-            .ToList();
+    .Where(k => k.Item1 == i || k.Item2 == i || k.Item1 == j || k.Item2 == j)
+    .ToList();
 
         foreach (var key in toRemove)
         {
             Distances.Remove(key);
         }
-
+    }
+    public void UpdateDistances(int newId, Cluster a, Cluster b)
+    {
         foreach (var (k, cluster) in Clusters)
         {
-            if (k == a.Id || k == b.Id) ;
+            //if (k == a.Id || k == b.Id) ;
 
-            var keyA = k < a.Id ? (k, a.Id) : (a.Id, k);
-            var keyB = k < b.Id ? (k, b.Id) : (b.Id, k);
+            //var keyA = k < a.Id ? (k, a.Id) : (a.Id, k);
+            //var keyB = k < b.Id ? (k, b.Id) : (b.Id, k);
+            if (k != a.Id && k != b.Id)
+            {
+                double distToA = GetDistance(k, a.Id);
+                double distToB = GetDistance(k, b.Id);
 
-            double distToA = copy.ContainsKey(keyA) ? copy[keyA] : 0.0;
-            double distToB = copy.ContainsKey(keyB) ? copy[keyB] : 0.0;
+                double newDistance = (a.Size * distToA + b.Size * distToB) / (a.Size + b.Size);
 
-            double newDistance = (a.Size * distToA + b.Size * distToB) / (a.Size + b.Size);
-
-            var newKey = k < newId ? (k, newId) : (newId, k);
-            Distances[newKey] = newDistance;
-            Queue.Enqueue(newKey, newDistance);
+                var newKey = (k, newId);
+                Distances[newKey] = newDistance;
+                Queue.Enqueue(newKey, newDistance);
+            }
         }
+        RemoveKeysFromDictionary(a.Id, b.Id);
     }
 
-    public void CalculateQMatrix()
+    public (int, int) CalculateQMatrix()
     {
-        int sizeOfMatrix = Size();
-        double[,] QMatrix = new double[sizeOfMatrix, sizeOfMatrix];
-        for (int i = 0; i < sizeOfMatrix; i++)
+        int sizeOfMatrix = Size;
+        Dictionary<(int, int), double> QMatrix = new Dictionary<(int, int), double>();
+        double min = double.MaxValue;
+        (int i_min, int j_min) = (-1, -1);
+        foreach (var (i, cluster1) in Clusters)
         {
-            for (int j = 0; j < sizeOfMatrix; j++)
+            foreach (var (j, cluster2) in Clusters)
             {
                 if (i < j)
                 {
-
+                    double total1 = CalculateTheTotalDistance(i);
+                    double total2 = CalculateTheTotalDistance(j);
+                    QMatrix[(i, j)] = (sizeOfMatrix - 2) * GetDistance(i, j) - total1 - total2;
+                    if (QMatrix[(i, j)] < min)
+                    {
+                        min = QMatrix[(i, j)];
+                        (i_min, j_min) = (i, j);
+                    }
+                    Queue.Enqueue((i, j), QMatrix[(i, j)]);
                 }
             }
         }
+        return (i_min, j_min);
+    }
+
+    private double CalculateTheTotalDistance(int i)
+    {
+        double sum = 0;
+        foreach (var (k, cluster) in Clusters)
+        {
+            if (i != k) sum += GetDistance(i, k);
+        }
+        return sum;
+    }
+
+    public List<double> ComputeBranchLengths(int i, int j)
+    {
+        double total_i = CalculateTheTotalDistance(i);
+        double total_j = CalculateTheTotalDistance(j);
+        double distance = GetDistance(i, j);
+        double branchLength_i = 1 / 2 * distance + (total_i - total_j) / (2 * Size - 4);
+        double branchLength_j = distance - branchLength_i;
+        List<double> length = new List<double>() { branchLength_i, branchLength_j };
+        return length;
+    }
+
+    public void UpdateDistanceMatrix_NJ(int new_id, Cluster i, Cluster j)
+    {
+        foreach (var (k, cluster) in Clusters)
+        {
+            if (k != i.Id && k != j.Id)
+            {
+                double distance = (GetDistance(i.Id, k) + GetDistance(j.Id, k) - GetDistance(i.Id, j.Id) / 2);
+                var new_key = (k, new_id);
+                Distances[new_key] = distance;
+            }
+        }
+        RemoveKeysFromDictionary(i.Id, j.Id);
     }
 }
