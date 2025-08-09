@@ -13,6 +13,8 @@
             string csv_file = "C:\\Users\\LEGION\\Desktop\\Andriy\\CharlesUniversity\\Programming2\\PhylogeneticTreeBuilder\\ConsoleApp1\\test_NJ.txt";
             DistanceMatrix matrix = new DistanceMatrix(csv_file);
             var b = a.BuildTree(matrix);
+
+            string newick = b.ToNewick(first: true);
         }
     }
 }

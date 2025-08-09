@@ -60,12 +60,20 @@
                 var merged = Cluster.Merge(cluster_i, cluster_j, next_id, newNode);
 
                 // Update matrix
-                matrix.UpdateDistances(next_id, cluster_i, cluster_j);
+                matrix.UpdateDistanceMatrix_NJ(next_id, cluster_i, cluster_j);
                 matrix.RemoveClusters(i_min, j_min);
                 matrix.AddCluster(next_id, merged);
                 next_id++;
             }
-            return matrix.Clusters.Values.First().Node;
+            List<Cluster> remainingClusters = matrix.Clusters.Values.ToList();
+            Cluster cluster1 = remainingClusters[0];
+            Cluster cluster2 = remainingClusters[1];
+            List<TreeNode> root_Children = cluster1.Node.Children;
+            List<double> root_Heights = cluster1.Node.Heights;
+            root_Children.Add(cluster2.Node);
+            root_Heights.Add(matrix.GetDistance(cluster1.Id, cluster2.Id));
+            TreeNode finalTree = new TreeNode(root_Children, root_Heights);
+            return finalTree;
         }
     }
 }

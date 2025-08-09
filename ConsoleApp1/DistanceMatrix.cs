@@ -129,7 +129,7 @@ public class DistanceMatrix
     public (int, int) CalculateQMatrix()
     {
         int sizeOfMatrix = Size;
-        Dictionary<(int, int), double> QMatrix = new Dictionary<(int, int), double>();
+        QMatrix = new Dictionary<(int, int), double>();
         double min = double.MaxValue;
         (int i_min, int j_min) = (-1, -1);
         foreach (var (i, cluster1) in Clusters)
@@ -146,7 +146,6 @@ public class DistanceMatrix
                         min = QMatrix[(i, j)];
                         (i_min, j_min) = (i, j);
                     }
-                    Queue.Enqueue((i, j), QMatrix[(i, j)]);
                 }
             }
         }
@@ -168,7 +167,7 @@ public class DistanceMatrix
         double total_i = CalculateTheTotalDistance(i);
         double total_j = CalculateTheTotalDistance(j);
         double distance = GetDistance(i, j);
-        double branchLength_i = 1 / 2 * distance + (total_i - total_j) / (2 * Size - 4);
+        double branchLength_i = 0.5 * distance + (total_i - total_j) / (2 * Size - 4);
         double branchLength_j = distance - branchLength_i;
         List<double> length = new List<double>() { branchLength_i, branchLength_j };
         return length;
@@ -180,7 +179,7 @@ public class DistanceMatrix
         {
             if (k != i.Id && k != j.Id)
             {
-                double distance = (GetDistance(i.Id, k) + GetDistance(j.Id, k) - GetDistance(i.Id, j.Id) / 2);
+                double distance = (GetDistance(i.Id, k) + GetDistance(j.Id, k) - GetDistance(i.Id, j.Id)) / 2;
                 var new_key = (k, new_id);
                 Distances[new_key] = distance;
             }

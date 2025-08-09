@@ -52,5 +52,25 @@
 
         public double GetMaxHeight => MaxHeight;
 
+        public string ToNewick(double? lengthFromParent = null, bool first = false)
+        {
+            if (this.Children.Count == 0) // Leaf
+            {
+                return $"{this.Name}:{lengthFromParent:0.###}";
+            }
+            else
+            {
+                var parts = new List<string>();
+                for (int i = 0; i < this.Children.Count; i++)
+                {
+                    var child = this.Children[i];
+                    var len = this.Heights[i];
+                    parts.Add(child.ToNewick(len));
+                }
+                if (first) return $"({string.Join(",", parts)});";
+                else return $"({string.Join(",", parts)}):{lengthFromParent:0.###}";
+            }
+
+        }
     }
 }
