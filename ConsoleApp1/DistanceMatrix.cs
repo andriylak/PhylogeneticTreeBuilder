@@ -30,10 +30,9 @@ public class DistanceMatrix
             throw new InvalidDataException(
                 $"Header has {n} labels, but there are {lines.Length - 1} data rows. Matrix must be square.");
 
-        // Use a temporary matrix to validate first; we’ll commit to Distances/Queue only if all checks pass
         var tmp = new double[n, n];
 
-        // For label uniqueness check
+        // Label uniqueness check
         var labelSet = new HashSet<string>(StringComparer.Ordinal);
         foreach (var lab in labels)
         {
@@ -53,7 +52,7 @@ public class DistanceMatrix
                 throw new InvalidDataException(
                     $"Row {i} has {parts.Length - 1} numeric cells, expected {n}. Check for missing/extra commas.");
 
-            // row label must match header label at same position
+            // checking for matching row label and expected header
             string rowLabel = parts[0].Trim();
             string expectedLabel = labels[i - 1];
             if (!string.Equals(rowLabel, expectedLabel, StringComparison.Ordinal))
@@ -93,7 +92,7 @@ public class DistanceMatrix
             }
         }
 
-        // --- commit: create clusters and fill Distances / Queue (store only i<j) ---
+        // --- create clusters and fill correct data inside Distances / Queue (store only i<j) ---
         for (int i = 0; i < n; i++)
         {
             int id = i + 1;
