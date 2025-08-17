@@ -1,10 +1,10 @@
-﻿namespace ConsoleApp1
+﻿namespace PhylogeneticTreeBuilder
 {
-    internal class UPGMA
+    public class UPGMA
     {
         public UPGMA() { }
 
-        public TreeNode BuildTree(DistanceMatrix matrix)
+        public TreeNode BuildTree(DistanceMatrix? matrix)
         {
             int next_id = matrix.Size + 1;
             while (matrix.Size > 1)
@@ -37,13 +37,10 @@
         }
     }
 
-    internal class NeighborJoining
+    public class NeighbourJoining
     {
-        public NeighborJoining()
-        {
-
-        }
-        public TreeNode BuildTree(DistanceMatrix matrix)
+        public NeighbourJoining() { }
+        public TreeNode BuildTree(DistanceMatrix? matrix)
         {
             int next_id = matrix.Size + 1;
             while (matrix.Size > 2)

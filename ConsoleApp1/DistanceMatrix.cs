@@ -1,4 +1,4 @@
-﻿using ConsoleApp1;
+﻿using PhylogeneticTreeBuilder;
 using System.Globalization;
 
 public class DistanceMatrix
@@ -10,48 +10,107 @@ public class DistanceMatrix
     public Dictionary<(int, int), double> QMatrix { get; private set; }
     public DistanceMatrix(string csvPath)
     {
-        List<string> labels = new List<string>();
         Queue = new PriorityQueue<(int, int), double>();
         Distances = new Dictionary<(int, int), double>();
         Clusters = new Dictionary<int, Cluster>();
 
         var lines = File.ReadAllLines(csvPath);
-        int size = lines.Length - 1;
+        if (lines.Length < 2)
+            throw new InvalidDataException("CSV must contain a header and at least one data row.");
 
-        // Parse the header to get the labels
-        var headers = lines[0].Split(',').Skip(1).ToArray();
-        labels.AddRange(headers);
+        // --- parse header ---
+        var headerCells = lines[0].Split(',');
+        if (headerCells.Length < 2)
+            throw new InvalidDataException("Header must have an empty corner cell and at least one label.");
 
-        for (int i = 1; i <= size; i++)
+        // labels are header cells excluding the first corner cell
+        var labels = headerCells.Skip(1).Select(s => s.Trim()).ToArray();
+        int n = labels.Length;
+        if (n != lines.Length - 1)
+            throw new InvalidDataException(
+                $"Header has {n} labels, but there are {lines.Length - 1} data rows. Matrix must be square.");
+
+        // Use a temporary matrix to validate first; we’ll commit to Distances/Queue only if all checks pass
+        var tmp = new double[n, n];
+
+        // For label uniqueness check
+        var labelSet = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var lab in labels)
+        {
+            if (string.IsNullOrWhiteSpace(lab))
+                throw new InvalidDataException("Empty column label found in header.");
+            if (!labelSet.Add(lab))
+                throw new InvalidDataException($"Duplicate label in header: '{lab}'.");
+        }
+
+        // --- parse & validate rows ---
+        const double TOLERANCE = 1e-9;
+
+        for (int i = 1; i <= n; i++)
         {
             var parts = lines[i].Split(',');
+            if (parts.Length != n + 1)
+                throw new InvalidDataException(
+                    $"Row {i} has {parts.Length - 1} numeric cells, expected {n}. Check for missing/extra commas.");
 
-            string rowLabel = parts[0];
+            // row label must match header label at same position
+            string rowLabel = parts[0].Trim();
             string expectedLabel = labels[i - 1];
+            if (!string.Equals(rowLabel, expectedLabel, StringComparison.Ordinal))
+                throw new InvalidDataException(
+                    $"Row label mismatch at row {i}: expected '{expectedLabel}', found '{rowLabel}'.");
 
-            ValidateRowAndColumn(rowLabel, expectedLabel, i);
-            TreeNode node = new TreeNode(rowLabel);
-            Cluster cluster = new Cluster(i, node);
-            AddCluster(i, cluster);
-
-            for (int j = 1; j < parts.Length; j++)
+            for (int j = 1; j <= n; j++)
             {
-                if (i < j)
-                {
-                    double value = double.Parse(parts[j], CultureInfo.InvariantCulture);
-                    Distances.Add((i, j), value);
-                    Queue.Enqueue((i, j), value);
-                }
+                string token = parts[j].Trim();
+                if (!double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out double v))
+                    throw new InvalidDataException(
+                        $"Invalid number at row {i}, column {j} (label '{labels[j - 1]}'): '{token}'.");
+
+                if (v < 0)
+                    throw new InvalidDataException(
+                        $"Negative distance at ({rowLabel},{labels[j - 1]}): {v}.");
+
+                tmp[i - 1, j - 1] = v;
             }
         }
-    }
 
-    private void ValidateRowAndColumn(string expected, string actual, int rowIndex)
-    {
-        if (expected != actual)
+        // --- diagonal & symmetry checks ---
+        for (int r = 0; r < n; r++)
         {
-            throw new InvalidDataException(
-                $"Row label mismatch at row {rowIndex}: expected '{expected}', found '{actual}'.");
+            if (Math.Abs(tmp[r, r]) > TOLERANCE)
+                throw new InvalidDataException(
+                    $"Diagonal must be zero at ({labels[r]},{labels[r]}), found {tmp[r, r].ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}.");
+
+            for (int c = r + 1; c < n; c++)
+            {
+                double a = tmp[r, c];
+                double b = tmp[c, r];
+
+                if (Math.Abs(a - b) > TOLERANCE)
+                    throw new InvalidDataException(
+                        $"Matrix is not symmetric between {labels[r]} and {labels[c]}: {a} vs {b}.");
+            }
+        }
+
+        // --- commit: create clusters and fill Distances / Queue (store only i<j) ---
+        for (int i = 0; i < n; i++)
+        {
+            int id = i + 1;
+            var node = new TreeNode(labels[i]);
+            var cluster = new Cluster(id, node);
+            AddCluster(id, cluster);
+        }
+
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = i + 1; j < n; j++)
+            {
+                double value = tmp[i, j];
+                var key = (i + 1, j + 1);
+                Distances.Add(key, value);
+                Queue.Enqueue(key, value);
+            }
         }
     }
 
@@ -76,15 +135,6 @@ public class DistanceMatrix
     {
         Clusters.Remove(i);
         Clusters.Remove(j);
-
-        var keysToRemove = Distances.Keys
-            .Where(k => k.Item1 == i || k.Item2 == i || k.Item1 == j || k.Item2 == j)
-            .ToList();
-
-        foreach (var key in keysToRemove)
-        {
-            Distances.Remove(key);
-        }
     }
 
     public void AddCluster(int id, Cluster cluster)
@@ -92,7 +142,7 @@ public class DistanceMatrix
         Clusters[id] = cluster;
     }
 
-    private void RemoveKeysFromDictionary(int i, int j)
+    public void RemoveKeysFromDictionary(int i, int j)
     {
         var toRemove = Distances.Keys
     .Where(k => k.Item1 == i || k.Item2 == i || k.Item1 == j || k.Item2 == j)
@@ -107,10 +157,6 @@ public class DistanceMatrix
     {
         foreach (var (k, cluster) in Clusters)
         {
-            //if (k == a.Id || k == b.Id) ;
-
-            //var keyA = k < a.Id ? (k, a.Id) : (a.Id, k);
-            //var keyB = k < b.Id ? (k, b.Id) : (b.Id, k);
             if (k != a.Id && k != b.Id)
             {
                 double distToA = GetDistance(k, a.Id);

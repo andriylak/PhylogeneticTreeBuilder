@@ -1,4 +1,4 @@
-﻿namespace ConsoleApp1
+﻿namespace PhylogeneticTreeBuilder
 {
     public class TreeNode
     {
@@ -18,9 +18,9 @@
         }
 
         // Constructor for internal (merged) nodes
-        public TreeNode(List<TreeNode> children, List<double> heights)
+        public TreeNode(List<TreeNode> children, List<double> heights, string name = "o")
         {
-            Name = "o";
+            Name = name;
             Children = new List<TreeNode>();
             Heights = new List<double>();
             for (int i = 0; i < children.Count; i++)
@@ -52,25 +52,46 @@
 
         public double GetMaxHeight => MaxHeight;
 
-        public string ToNewick(double? lengthFromParent = null, bool first = false)
+        public string ToNewick()
         {
-            if (this.Children.Count == 0) // Leaf
-            {
-                return $"{this.Name}:{lengthFromParent:0.###}";
-            }
-            else
-            {
-                var parts = new List<string>();
-                for (int i = 0; i < this.Children.Count; i++)
-                {
-                    var child = this.Children[i];
-                    var len = this.Heights[i];
-                    parts.Add(child.ToNewick(len));
-                }
-                if (first) return $"({string.Join(",", parts)});";
-                else return $"({string.Join(",", parts)}):{lengthFromParent:0.###}";
-            }
+            var s = ToNewickInternal(lengthFromParent: null);
+            return s + ";";
+        }
 
+        private string ToNewickInternal(double? lengthFromParent)
+        {
+            if (Children == null || Heights == null)
+                throw new InvalidOperationException("Children/Heights not initialized.");
+            if (Children.Count != Heights.Count)
+                throw new InvalidOperationException("Children and Heights must have same length.");
+
+            //leaf
+            if (this.IsLeaf)
+                return $"{Sanitize(Name)}:{Format(lengthFromParent)}";
+
+            //internal
+            var parts = new List<string>(Children.Count);
+            for (int i = 0; i < Children.Count; i++)
+                parts.Add(Children[i].ToNewickInternal(Heights[i]));
+
+            var inside = string.Join(",", parts);
+
+            //doesn't branch length if this is the topmost call
+            return lengthFromParent is null
+                ? $"({inside})"
+                : $"({inside}):{Format(lengthFromParent)}";
+
+            //local helpers 
+            static string Format(double? x) =>
+                (x ?? 0).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+
+            static string Sanitize(string name)
+            {
+                if (string.IsNullOrEmpty(name)) return "";
+                return name.Any(ch => " \t():,;".Contains(ch))
+                    ? name.Replace(' ', '_')
+                    : name;
+            }
         }
     }
 }

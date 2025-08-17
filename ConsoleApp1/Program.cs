@@ -1,5 +1,6 @@
-﻿namespace ConsoleApp1
+﻿namespace PhylogeneticTreeBuilder
 {
+
     internal class Program
     {
         static void Main(string[] args)
@@ -9,12 +10,12 @@
             //DistanceMatrix matrix = new DistanceMatrix(csv_file);
             //var b = a.BuildTree(matrix);
 
-            var a = new NeighborJoining();
+            var a = new NeighbourJoining();
             string csv_file = "C:\\Users\\LEGION\\Desktop\\Andriy\\CharlesUniversity\\Programming2\\PhylogeneticTreeBuilder\\ConsoleApp1\\test_NJ.txt";
             DistanceMatrix matrix = new DistanceMatrix(csv_file);
             var b = a.BuildTree(matrix);
 
-            string newick = b.ToNewick(first: true);
+            string newick = b.ToNewick();
         }
     }
 }
