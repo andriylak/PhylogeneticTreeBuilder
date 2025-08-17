@@ -1,27 +1,22 @@
-# Zápočtový program: *název vašeho programu*
+# Phylogenetic Tree Builder
 
-*Tento soubor slouží jako šablona. Vhodně ho upravte podle vašeho projektu. Text psaný kurzívou obsahuje instrukce pro vás – před odevzdáním je prosím odstraňte nebo nahraďte vlastním textem.*
+## Specification
 
-## Specifikace
+Phylogenetic trees are key tools in molecular biology used to understand evolutionary relationships between species or genes. This project aims to implement two foundational algorithms for tree construction: UPGMA (Unweighted Pair Group Method with Arithmetic Mean) and Neighbor Joining (NJ). These methods will be used to construct trees based on distance matrices derived from DNA or protein sequences. The resulting trees will visually represent hypothesized evolutionary paths and similarities among the input organisms or sequences.
+The goal is to build a C# application that takes a precomputed distance matrix (CSV format), and constructs a phylogenetic tree (in Newick format) using the chosen algorithm (UPGMA or NJ).  
 
-*Sem napište stručnou specifikaci vašeho programu – co váš program má dělat (podobně jako jste mi psali do mailu). Stačí zhruba 1–2 odstavce.*
+### Problem Formalization.
 
-## *Doporučená struktura projektu*
+#### Input: 
+Symmetric distance matrix in CSV format. The user will also specify which algorithm to use (UPGMA or NJ). 
 
-*Je vhodné v repozitáři oddělit zdrojové kódy vašeho programu od dokumentace (a případně testů, pokud je máte). Pro zdrojové kódy tedy vytvořte složku, v C# se nejčastěji pojmenovává podle jména projektu. Například pokud by se váš program jmenoval JMENO_PROJEKTU, tak budete mít složku `JMENO_PROJEKTU` a v ní `JMENO_PROJEKTU.csproj` a `Program.cs` a případně další `.cs` soubory.*
+#### Output: 
 
-*Pro dokumentaci je připravena složka `docs`, její obsah vhodně upravte.*
+A phylogenetic tree represented in Newick format.
 
-## Instalace a spuštění
+Testing of all functions and methods will be performed using xUnit.
 
-*Pokud je váš program v C#, stačí upravit JMENO_PROJEKTU níže a případně doplnit další informace ke spuštění (jestli má nějaké parametry, vstupní soubory, ...). Pokud je parametrů hodně nebo je potřeba nějaký speciální formát vstupních souborů, nechte tuto sekci jen stručnou a podrobněji to popište v uživatelské dokumentaci (a sem dejte odkaz). Pokud je program v jiném programovacím jazyce nebo pro spuštění vyžaduje instalaci nějakých knihoven či nástrojů, tuto sekci vhodně upravte, abych byl při kontrole schopen nainstalovat si vše potřebné a program spustit.*
+## Documentation
 
-Pro spuštění přejděte do složky `JMENO_PROJEKTU` a spusťte příkaz `dotnet run`.
-
-## Dokumentace
-
-*Tady bude rozcestník k dokumentaci k vašemu programu. Pokud je to potřeba, upravte odkazy na soubory s dokumentací. Pokud dokumentaci nepíšete v Markdownu, uveďte zde, kde ji najdu (např. odkaz na PDF soubor).*
-
-* [Uživatelská dokumentace](docs/user.md)
-* [Ukázky použití](docs/examples.md)
-* [Programátorská dokumentace](docs/programmer.md)
+* [User Guide](docs/user.md)
+* [Programming documentation](docs/programmer.md)
