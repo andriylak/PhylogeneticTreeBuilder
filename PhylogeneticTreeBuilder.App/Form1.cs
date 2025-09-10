@@ -63,7 +63,7 @@ namespace PhylogeneticTreeBuilder.App
                 if (!newick.EndsWith(";")) newick += ";";
 
                 txtNewick.Text = newick;
-                MessageBox.Show(this, "Tree built.", "Succeed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, "Tree built.", "Succeed", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (InvalidDataException ex) // your validation errors
             {
@@ -88,7 +88,7 @@ namespace PhylogeneticTreeBuilder.App
             if (!string.IsNullOrWhiteSpace(txtNewick.Text))
             {
                 Clipboard.SetText(txtNewick.Text);
-                MessageBox.Show(this, "Newick copied to clipboard.", "Succeed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, "Newick copied to clipboard.", "Succeed", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
